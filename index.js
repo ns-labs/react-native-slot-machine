@@ -1,5 +1,5 @@
-import React, {Component} from 'react';
-import {View, Text, StyleSheet, Animated, Easing} from 'react-native';
+import React, { Component } from 'react';
+import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 
 const styles = StyleSheet.create({
     container: {
@@ -8,14 +8,14 @@ const styles = StyleSheet.create({
     },
     slotWrapper: {
         backgroundColor: 'gray',
-        marginLeft: 5,
+        //marginLeft: 5,
     },
     slotInner: {
         backgroundColor: 'black',
-        alignSelf: 'stretch',
+        //alignSelf: 'stretch',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 2,
+        //padding: 2,
     },
     text: {
         fontSize: 50,
@@ -85,11 +85,11 @@ export default class SlotMachine extends Component {
         } else {
             values = this.getAlignedValues(props).map(val => new Animated.Value(val));
         }
-        this.state = {values, initialAnimation: false};
+        this.state = { values, initialAnimation: false };
     }
 
     componentDidMount() {
-        const {delay, initialAnimation} = this.props;
+        const { delay, initialAnimation } = this.props;
         if (!initialAnimation) {
             return;
         }
@@ -101,31 +101,45 @@ export default class SlotMachine extends Component {
             return;
         }
         this.text = newProps.text;
-        const {range, duration, useNativeDriver} = newProps;
+        const { range, rangeInArray, duration, useNativeDriver } = newProps;
         const easing = Easing.inOut(Easing.ease);
         const paddedStr = this.getPaddedString(newProps);
         const newValues = this.getAdjustedAnimationValues(newProps);
 
-        this.setState({values: newValues}, () => {
+        /*
+            code for single letter scrolling
+         this.setState({ values: newValues }, () => {
             const newAnimations = paddedStr.split('').map((char, i) => {
                 const index = range.indexOf(char);
                 const animationValue = -1 * (index) * newProps.height;
-                return Animated.timing(this.state.values[i], {toValue: animationValue, duration, easing, useNativeDriver: useNativeDriver});
+                return Animated.timing(this.state.values[i], { toValue: animationValue, duration, easing, useNativeDriver: useNativeDriver });
             });
             Animated.parallel(newAnimations).start();
+        }); */
+
+        this.setState({ values: newValues }, () => {
+            const index = rangeInArray.findIndex(e => e == paddedStr);
+            if (index != -1) {
+                const animationValue = -1 * (index) * newProps.height;
+                const newAnimations = [Animated.timing(this.state.values[0], { toValue: animationValue, duration, easing, useNativeDriver: useNativeDriver })];
+                Animated.parallel(newAnimations).start();
+            }
         });
     }
 
     getAdjustedAnimationValues(props) {
-        const {values} = this.state;
+        const { values } = this.state;
         const paddedStr = this.getPaddedString(props);
+        if (this.props.rangeInArray && this.props.rangeInArray.length > 0) {
+            return values;
+        }
         let neededValues = paddedStr.length - values.length;
 
         if (neededValues <= 0) {
             return values;
         }
 
-        const defaultIndex = props.range.indexOf(props.defaultChar);
+        const defaultIndex = props.rangeInArray.findIndex(e => e == props.defaultChar);
         const defaultPosition = this.getPosition(defaultIndex, props);
         const newValues = [...values];
 
@@ -136,24 +150,56 @@ export default class SlotMachine extends Component {
         return newValues;
     }
 
+    /*
+        getAdjustedAnimationValues(props) {
+            const { values } = this.state;
+            const paddedStr = this.getPaddedString(props);
+            let neededValues = paddedStr.length - values.length;
+    
+            if (neededValues <= 0) {
+                return values;
+            }
+    
+            const defaultIndex = props.range.indexOf(props.defaultChar);
+            const defaultPosition = this.getPosition(defaultIndex, props);
+            const newValues = [...values];
+    
+            while (neededValues--) {
+                newValues.unshift(new Animated.Value(defaultPosition));
+            }
+    
+            return newValues;
+        }
+        */
+
     getPosition(index, props = this.props) {
         const position = -1 * (index) * props.height;
         return position;
     }
 
+    /*
+     getAlignedValues(props) {
+         const paddedStr = this.getPaddedString();
+         const { range } = props;
+ 
+         const values = paddedStr.split('').map((char) => {
+             const index = range.indexOf(char);
+             const animationValue = this.getPosition(index, props);
+             return animationValue;
+         });
+ 
+         return values;
+     }*/
+
     getAlignedValues(props) {
         const paddedStr = this.getPaddedString();
-        const {range} = props;
-
-        const values = paddedStr.split('').map((char) => {
-            const index = range.indexOf(char);
-            const animationValue = this.getPosition(index, props);
-            return animationValue;
-        });
-
+        const { range, rangeInArray } = props;
+        const index = rangeInArray.findIndex(e => e == paddedStr);
+        const values = [this.getPosition(index, props)];
         return values;
     }
 
+    /*
     getInitialSlotsValues(props) {
         const values = [];
         const strNum = String(this.text);
@@ -165,8 +211,25 @@ export default class SlotMachine extends Component {
         }
 
         return values;
+    }*/
+
+    getInitialSlotsValues(props) {
+        const values = [];
+        const animationValue = this.getPosition(props.rangeInArray.length - 1, props);
+        values.push(new Animated.Value(animationValue));
+        return values;
     }
 
+    getPaddedString(props = this.props) {
+        const { defaultChar } = props;
+        let paddedText = String(this.text);
+        if (!paddedText) {
+            paddedText = defaultChar;
+        }
+        return paddedText;
+    }
+
+    /*
     getPaddedString(props = this.props) {
         const {padding, defaultChar} = props;
 
@@ -177,47 +240,73 @@ export default class SlotMachine extends Component {
         }
 
         return paddedText;
-    }
+    } 
 
     generateSlots() {
         const paddedStr = this.getPaddedString();
         const elements = paddedStr.split('').map(this.renderSlot);
         return elements;
-    }
+    } */
 
+    generateSlots() {
+        const paddedStr = this.getPaddedString();
+        const elements = this.renderSlot(paddedStr, 0);
+        return elements;
+    }
+    /*
     startInitialAnimation() {
-        const {values} = this.state;
-        const {duration, slotInterval, useNativeDriver} = this.props;
+        const { values } = this.state;
+        const { duration, slotInterval, useNativeDriver } = this.props;
         const easing = Easing.inOut(Easing.ease);
 
         const animations = values.map((value, i) => {
             const animationDuration = duration - (values.length - 1 - i) * slotInterval;
-            return Animated.timing(value, {toValue: 0, duration: animationDuration, easing, useNativeDriver: useNativeDriver});
+            return Animated.timing(value, { toValue: 0, duration: animationDuration, easing, useNativeDriver: useNativeDriver });
         });
 
         Animated.parallel(animations).start(() => {
             const newValues = this.getAlignedValues(this.props);
             newValues.forEach((value, i) => values[i].setValue(value));
-            this.setState({initialAnimation: false});
+            this.setState({ initialAnimation: false });
         });
 
-        this.setState({initialAnimation: true});
+        this.setState({ initialAnimation: true });
+    }*/
+
+    startInitialAnimation() {
+        const { values } = this.state;
+        const { duration, slotInterval, useNativeDriver } = this.props;
+        const easing = Easing.inOut(Easing.ease);
+
+        const animations = values.map((value, i) => {
+            const animationDuration = duration - (values.length - 1 - i) * slotInterval;
+            return Animated.timing(value, { toValue: 0, duration: animationDuration, easing, useNativeDriver: useNativeDriver });
+        });
+
+        Animated.parallel(animations).start(() => {
+            const newValues = this.getAlignedValues(this.props);
+            newValues.forEach((value, i) => values[i].setValue(value));
+            this.setState({ initialAnimation: false });
+        });
+
+        this.setState({ initialAnimation: true });
     }
 
     spinTo(value) {
         this.text = value;
         const values = this.getInitialSlotsValues(this.props);
-        this.setState({values}, () => this.startInitialAnimation());
+        this.setState({ values }, () => this.startInitialAnimation());
     }
 
     renderContent(currentChar, i, range) {
-        const {styles: overrideStyles, renderTextContent} = this.props;        
+        const { styles: overrideStyles, renderTextContent } = this.props;
         const textContent = renderTextContent(currentChar, i, range);
-        return (<Text style={[styles.text, overrideStyles.text]}>{textContent}</Text>);
+        return textContent; //(<Text style={[styles.text, overrideStyles.text]}>{textContent}</Text>);
     }
 
+    /*
     renderSlot(charToShow, position) {
-        const {range, styles: overrideStyles, height, width, renderContent = this.renderContent} = this.props;
+        const {range, styles: overrideStyles, height, width, renderContent = this.renderContent,backgroundColor} = this.props;
         const {initialAnimation, values} = this.state;
         const charToShowIndex = range.indexOf(charToShow);
 
@@ -227,24 +316,53 @@ export default class SlotMachine extends Component {
                 const currentIndex = (i + charToShowIndex) % range.length;
                 currentChar = range[currentIndex];
             }
-            
+
             const content = renderContent(currentChar, i, range);
             return (
                 <Animated.View
                     key={i}
-                    style={[styles.slotInner, {height}, overrideStyles.slotInner, {transform: [{translateY: values[position]}]} ]}
+                    style={[styles.slotInner, { height, backgroundColor }, overrideStyles.slotInner, { transform: [{ translateY: values[position] }] }]}
                 >
-                    {content}
+                    <Text style={[styles.text, overrideStyles.text]}>{content}</Text>
+                </Animated.View>
+            );
+        });
+        return (
+            <View key={position} style={[styles.slotWrapper, { height, width }, overrideStyles.slotWrapper]}>
+                {slots}
+
+                 <View style={[styles.innerBorder, overrideStyles.innerBorder]} />
+                <View style={[styles.outerBorder, overrideStyles.outerBorder]} />
+                <View style={[styles.overlay, {bottom: height / 1.6}, overrideStyles.overlay]} /> 
+            </View>
+        );
+    }
+    */
+
+    renderSlot(charToShow, position) {
+        const { rangeInArray, styles: overrideStyles, height, width, renderContent = this.renderContent, backgroundColor } = this.props;
+        const { initialAnimation, values } = this.state;
+        const charToShowIndex = rangeInArray.findIndex(e => e == charToShow);
+        const slots = rangeInArray.map((val, i) => {
+            let currentChar = val;
+            if (initialAnimation) {
+                const currentIndex = (i + charToShowIndex) % rangeInArray.length;
+                currentChar = rangeInArray[currentIndex];
+            }
+            const content = currentChar;
+            return (
+                <Animated.View
+                    key={i}
+                    style={[styles.slotInner, { height, backgroundColor }, overrideStyles.slotInner, { transform: [{ translateY: values[position] }] }]}
+                >
+                    <Text style={[styles.text, overrideStyles.text]}>{content}</Text>
                 </Animated.View>
             );
         });
 
         return (
-            <View key={position} style={[styles.slotWrapper, {height, width}, overrideStyles.slotWrapper]}>
+            <View key={position} style={[styles.slotWrapper, { height, width }, overrideStyles.slotWrapper]}>
                 {slots}
-                <View style={[styles.innerBorder, overrideStyles.innerBorder]} />
-                <View style={[styles.outerBorder, overrideStyles.outerBorder]} />
-                <View style={[styles.overlay, {bottom: height / 1.6}, overrideStyles.overlay]} />
             </View>
         );
     }
