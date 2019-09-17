@@ -8,14 +8,14 @@ const styles = StyleSheet.create({
     },
     slotWrapper: {
         backgroundColor: 'gray',
-        marginLeft: 5,
+        //marginLeft: 5,
     },
     slotInner: {
         backgroundColor: 'black',
-        alignSelf: 'stretch',
+        //alignSelf: 'stretch',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 2,
+        //padding: 2,
     },
     text: {
         fontSize: 50,
@@ -213,11 +213,11 @@ export default class SlotMachine extends Component {
     renderContent(currentChar, i, range) {
         const {styles: overrideStyles, renderTextContent} = this.props;        
         const textContent = renderTextContent(currentChar, i, range);
-        return (<Text style={[styles.text, overrideStyles.text]}>{textContent}</Text>);
+        return  textContent; //(<Text style={[styles.text, overrideStyles.text]}>{textContent}</Text>);
     }
 
     renderSlot(charToShow, position) {
-        const {range, styles: overrideStyles, height, width, renderContent = this.renderContent} = this.props;
+        const {range, styles: overrideStyles, height, width, renderContent = this.renderContent,backgroundColor} = this.props;
         const {initialAnimation, values} = this.state;
         const charToShowIndex = range.indexOf(charToShow);
 
@@ -232,9 +232,9 @@ export default class SlotMachine extends Component {
             return (
                 <Animated.View
                     key={i}
-                    style={[styles.slotInner, {height}, overrideStyles.slotInner, {transform: [{translateY: values[position]}]} ]}
+                    style={[styles.slotInner, {height,backgroundColor}, overrideStyles.slotInner, {transform: [{translateY: values[position]}]} ]}
                 >
-                    {content}
+                    <Text style={[styles.text, overrideStyles.text]}>{content}</Text>
                 </Animated.View>
             );
         });
@@ -242,9 +242,10 @@ export default class SlotMachine extends Component {
         return (
             <View key={position} style={[styles.slotWrapper, {height, width}, overrideStyles.slotWrapper]}>
                 {slots}
-                <View style={[styles.innerBorder, overrideStyles.innerBorder]} />
+                
+                {/* <View style={[styles.innerBorder, overrideStyles.innerBorder]} />
                 <View style={[styles.outerBorder, overrideStyles.outerBorder]} />
-                <View style={[styles.overlay, {bottom: height / 1.6}, overrideStyles.overlay]} />
+                <View style={[styles.overlay, {bottom: height / 1.6}, overrideStyles.overlay]} /> */}
             </View>
         );
     }
