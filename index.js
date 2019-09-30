@@ -96,15 +96,46 @@ export default class SlotMachine extends Component {
         setTimeout(this.startInitialAnimation, delay);
     }
 
-    componentWillReceiveProps(newProps) {
-        if (newProps.text === this.text) {
+    // componentWillReceiveProps(newProps) {
+    //     if (newProps.text === this.text) {
+    //         return;
+    //     }
+    //     this.text = newProps.text;
+    //     const { range, rangeInArray, duration, useNativeDriver } = newProps;
+    //     const easing = Easing.inOut(Easing.ease);
+    //     const paddedStr = this.getPaddedString(newProps);
+    //     const newValues = this.getAdjustedAnimationValues(newProps);
+
+    //     /*
+    //         code for single letter scrolling
+    //      this.setState({ values: newValues }, () => {
+    //         const newAnimations = paddedStr.split('').map((char, i) => {
+    //             const index = range.indexOf(char);
+    //             const animationValue = -1 * (index) * newProps.height;
+    //             return Animated.timing(this.state.values[i], { toValue: animationValue, duration, easing, useNativeDriver: useNativeDriver });
+    //         });
+    //         Animated.parallel(newAnimations).start();
+    //     }); */
+
+    //     this.setState({ values: newValues }, () => {
+    //         const index = rangeInArray.findIndex(e => e == paddedStr);
+    //         if (index != -1) {
+    //             const animationValue = -1 * (index) * newProps.height;
+    //             const newAnimations = [Animated.timing(this.state.values[0], { toValue: animationValue, duration, easing, useNativeDriver: useNativeDriver })];
+    //             Animated.parallel(newAnimations).start();
+    //         }
+    //     });
+    // }
+
+    componentDidUpdate(prevProps) {
+		if (this.props.text === this.text) {
             return;
         }
-        this.text = newProps.text;
-        const { range, rangeInArray, duration, useNativeDriver } = newProps;
+        this.text = this.props.text;
+        const { range, rangeInArray, duration, useNativeDriver } = this.props;
         const easing = Easing.inOut(Easing.ease);
-        const paddedStr = this.getPaddedString(newProps);
-        const newValues = this.getAdjustedAnimationValues(newProps);
+        const paddedStr = this.getPaddedString(this.props);
+        const newValues = this.getAdjustedAnimationValues(this.props);
 
         /*
             code for single letter scrolling
@@ -120,12 +151,12 @@ export default class SlotMachine extends Component {
         this.setState({ values: newValues }, () => {
             const index = rangeInArray.findIndex(e => e == paddedStr);
             if (index != -1) {
-                const animationValue = -1 * (index) * newProps.height;
+                const animationValue = -1 * (index) * this.props.height;
                 const newAnimations = [Animated.timing(this.state.values[0], { toValue: animationValue, duration, easing, useNativeDriver: useNativeDriver })];
                 Animated.parallel(newAnimations).start();
             }
         });
-    }
+	}
 
     getAdjustedAnimationValues(props) {
         const { values } = this.state;
