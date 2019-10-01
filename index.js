@@ -69,6 +69,7 @@ export default class SlotMachine extends Component {
             styles: {},
             renderTextContent: (currentChar) => currentChar,
             useNativeDriver: false,
+            allowFontScaling: false
         };
     }
 
@@ -386,7 +387,7 @@ export default class SlotMachine extends Component {
                     key={i}
                     style={[styles.slotInner, { height, backgroundColor }, overrideStyles.slotInner, { transform: [{ translateY: values[position] }] }]}
                 >
-                    <Text style={[styles.text, overrideStyles.text]}>{content}</Text>
+                    <Text style={[styles.text, overrideStyles.text]} allowFontScaling={this.props.allowFontScaling}>{content}</Text>
                 </Animated.View>
             );
         });
